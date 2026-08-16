@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionnaire Santé USANA — Confort, Tonus & Nutrition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0D1B2A;
+    --surface:#142639;
+    --surface-2:#1B3350;
+    --gold:#C9A227;
+    --gold-soft:#E4C766;
+    --ice:#8FD9E8;
+    --text:#F2EDE3;
+    --muted:#8FA0B5;
+    --line:rgba(242,237,227,0.12);
+    --danger:#D97757;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.10), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:640px;
+    margin:0 auto;
+    padding:28px 20px 80px;
+  }
+  /* ---------- Header + Ridge progress (signature element) ---------- */
+  .brand{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .brand-name{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:17px;
+    letter-spacing:0.01em;
+    color:var(--gold-soft);
+    line-height:1.25;
+  }
+  .brand-tag{
+    font-family:'Space Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .ridge-wrap{
+    position:relative;
+    height:54px;
+    margin-bottom:8px;
+  }
+  .ridge-wrap svg{width:100%;height:100%;display:block;}
+  #ridgeFill{transition:stroke-dashoffset 0.6s cubic-bezier(.65,0,.35,1);}
+  .step-label{
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-bottom:28px;
+  }
+  .step-label b{color:var(--gold-soft);font-weight:700;}
+
+  /* ---------- Cards / steps ---------- */
+  .card{
+    background:linear-gradient(180deg, var(--surface), var(--surface-2));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:30px 26px;
+    animation:rise 0.45s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes rise{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  h1.step-title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:26px;
+    line-height:1.25;
+    margin:0 0 8px;
+    color:var(--text);
+  }
+  p.step-sub{
+    color:var(--muted);
+    font-size:14.5px;
+    line-height:1.55;
+    margin:0 0 26px;
+  }
+  label.field-label{
+    display:block;
+    font-size:13px;
+    color:var(--gold-soft);
+    margin-bottom:8px;
+    font-weight:600;
+  }
+  input[type=text], input[type=email], input[type=tel]{
+    width:100%;
+    background:rgba(0,0,0,0.18);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:13px 14px;
+    color:var(--text);
+    font-size:15px;
+    font-family:'Inter',sans-serif;
+    margin-bottom:18px;
+    outline:none;
+    transition:border-color .2s;
+  }
+  input:focus{border-color:var(--gold);}
+  input::placeholder{color:#5C6E82;}
+
+  .choice-grid{display:flex; flex-direction:column; gap:10px; margin-bottom:6px;}
+  .choice{
+    display:flex; align-items:center; gap:12px;
+    background:rgba(0,0,0,0.16);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:border-color .15s, background .15s, transform .1s;
+    font-size:15px;
+  }
+  .choice:hover{border-color:rgba(201,162,39,0.5);}
+  .choice.selected{
+    border-color:var(--gold);
+    background:rgba(201,162,39,0.12);
+  }
+  .choice .dot{
+    width:16px;height:16px;border-radius:50%;
+    border:2px solid var(--muted);
+    flex:0 0 16px;
+    position:relative;
+  }
+  .choice.selected .dot{border-color:var(--gold);}
+  .choice.selected .dot::after{
+    content:'';position:absolute;inset:3px;border-radius:50%;background:var(--gold);
+  }
+  .choice.multi .dot{border-radius:5px;}
+  .choice.multi.selected .dot::after{border-radius:2px;}
+
+  textarea.other-input{
+    width:100%;
+    background:rgba(0,0,0,0.18);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    margin-top:8px;
+    resize:none;
+    outline:none;
+  }
+  textarea.other-input:focus{border-color:var(--gold);}
+
+  /* ---------- Scale grid (auto-évaluation) ---------- */
+  .scale-list{display:flex; flex-direction:column; gap:20px;}
+  .scale-item .scale-top{
+    display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;
+  }
+  .scale-item .scale-name{font-size:14.5px; font-weight:600;}
+  .scale-item .scale-value{
+    font-family:'Space Mono',monospace; font-size:14px; color:var(--gold-soft);
+    min-width:24px; text-align:right;
+  }
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:6px; border-radius:4px;
+    background:linear-gradient(90deg, var(--danger), var(--gold) 50%, var(--ice));
+    outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:20px; height:20px; border-radius:50%;
+    background:var(--text); border:3px solid var(--gold);
+    cursor:pointer; margin-top:-7px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:20px; height:20px; border-radius:50%;
+    background:var(--text); border:3px solid var(--gold); cursor:pointer;
+  }
+  .scale-poles{
+    display:flex; justify-content:space-between;
+    font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:4px;
+  }
+
+  /* ---------- Buttons ---------- */
+  .nav-row{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:28px;
+  }
+  button{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14.5px;
+    border-radius:10px; padding:13px 22px; cursor:pointer; border:none;
+    transition:transform .1s, opacity .15s;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-primary{
+    background:var(--gold); color:#1A1305;
+  }
+  .btn-primary:hover{background:var(--gold-soft);}
+  .btn-primary:disabled{opacity:0.35; cursor:not-allowed;}
+  .btn-ghost{
+    background:transparent; color:var(--muted); padding:13px 8px;
+  }
+  .btn-ghost:hover{color:var(--text);}
+
+  /* ---------- Results ---------- */
+  .result-hero{
+    text-align:center; padding:6px 0 18px;
+  }
+  .result-hero .glyph{font-size:34px; margin-bottom:10px;}
+  .result-hero h1{margin-bottom:6px;}
+  .score-summary{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:10px;
+    margin:20px 0;
+  }
+  .score-chip{
+    background:rgba(0,0,0,0.18); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px;
+  }
+  .score-chip .cat{font-size:12.5px; color:var(--muted); margin-bottom:4px;}
+  .score-chip .val{font-family:'Space Mono',monospace; font-size:18px; font-weight:700;}
+  .score-chip.low .val{color:var(--danger);}
+  .score-chip.high .val{color:var(--ice);}
+
+  .analysis-block{
+    background:rgba(0,0,0,0.15); border:1px solid var(--line); border-radius:12px;
+    padding:20px; margin-top:18px; white-space:pre-wrap; font-size:14px; line-height:1.7;
+    max-height:340px; overflow-y:auto;
+  }
+  .status-msg{
+    margin-top:16px; font-size:13.5px; text-align:center; color:var(--muted); min-height:20px;
+  }
+  .status-msg.ok{color:var(--ice);}
+  .status-msg.err{color:var(--danger);}
+
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+
+  @media (max-width:480px){
+    .card{padding:24px 18px;}
+    h1.step-title{font-size:22px;}
+    .score-summary{grid-template-columns:1fr 1fr;}
+  }
+
+  .btn-secondary{
+    background:transparent; color:var(--gold-soft); border:1px solid var(--gold);
+  }
+  .btn-secondary:hover{background:rgba(201,162,39,0.12);}
+  .result-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;}
+  .result-actions button{flex:1; min-width:160px;}
+
+  /* ---------- Impression / export PDF ---------- */
+  @media print{
+    body{background:#fff !important; color:#111 !important;}
+    .brand, .ridge-wrap, .step-label, .nav-row, .status-msg, .result-actions{display:none !important;}
+    .app{max-width:100%; padding:0;}
+    .card{
+      background:#fff !important; border:none !important; box-shadow:none !important; padding:0 !important;
+      animation:none !important;
+    }
+    .result-hero{text-align:left;}
+    .result-hero .glyph{display:none;}
+    h1.step-title, .scale-name, .cat, .score-chip .val{color:#111 !important;}
+    p.step-sub{color:#444 !important;}
+    .score-chip{background:#f4f4f4 !important; border:1px solid #ddd !important;}
+    .score-chip.low .val{color:#B3492E !important;}
+    .score-chip.high .val{color:#1D6E7C !important;}
+    .analysis-block{
+      background:#fff !important; border:1px solid #ddd !important; color:#111 !important;
+      max-height:none !important; overflow:visible !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="brand">
+    <div class="brand-name">Questionnaire Santé USANA</div>
+    <div class="brand-tag">Confort · Tonus · Nutrition</div>
+  </div>
+
+  <div class="ridge-wrap">
+    <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+      <path d="M0,52 L60,52 L100,20 L140,40 L190,10 L230,42 L280,30 L330,48 L380,15 L430,38 L480,25 L540,46 L600,52"
+            fill="none" stroke="rgba(242,237,227,0.10)" stroke-width="2"/>
+      <path id="ridgeFill" d="M0,52 L60,52 L100,20 L140,40 L190,10 L230,42 L280,30 L330,48 L380,15 L430,38 L480,25 L540,46 L600,52"
+            fill="none" stroke="url(#gGold)" stroke-width="3" stroke-linecap="round"
+            stroke-dasharray="900" stroke-dashoffset="900"/>
+      <defs>
+        <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#C9A227"/>
+          <stop offset="100%" stop-color="#8FD9E8"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="step-label">Étape <b id="stepNow">1</b> / <span id="stepTotal">7</span></div>
+
+  <div id="cardHost"></div>
+</div>
+
+<script>
+/* ============================================================
+   DONNÉES & CONFIGURATION
+   ============================================================ */
+
+// ⚠️ Remplace cet endpoint par celui de ton propre formulaire Formspree
+// (créé gratuitement sur https://formspree.io avec yohannroux74450@gmail.com)
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xdarrqzq";
+
+const SCALE_ITEMS = [
+  "Angoisse","Articulations","Changement d'humeur","Clarté d'esprit et/ou d'analyse","Digestion",
+  "Douleurs du dos","Douleurs des jambes","Endurance","Mémoire","Peau",
+  "Récupération","Sommeil","Stress","Performances sportives","Système immunitaire"
+];
+
+// Note : "Angoisse" et "Stress" sont formulés en échelle inversée dans le
+// questionnaire original (1 = tout va mal / beaucoup de stress). On les traite
+// comme toutes les autres échelles ici : 1 = va mal, 10 = va bien, pour rester
+// cohérent et lisible dans les résultats.
+
+// Argumentaire + posologie associés à chaque axe (produits USANA, gamme France)
+// Toutes les posologies et mises en garde ci-dessous sont reprises telles quelles
+// de la brochure officielle "Informations sur les produits 2025" d'USANA France.
+const PRODUCT_MAP = {
+  "Angoisse": [
+    {n:"Mind + Body Balance", d:"2 comprimés/jour, avec un repas", why:"ashwagandha, safran et mélisse, trois plantes traditionnellement utilisées pour leurs effets calmants et leur soutien à une réponse au stress équilibrée.", c:"Ne pas utiliser en cas de grossesse. Demandez conseil à votre médecin/pharmacien en cas de traitement contre la dépression en cours."},
+    {n:"MagneCal D", d:"2 comprimés/jour, avec un repas", why:"magnésium, calcium et vitamine D pour soutenir le système nerveux et la fonction musculaire normale."}
+  ],
+  "Articulations": [
+    {n:"Procosa", d:"3 comprimés/jour, avec un repas", why:"glucosamine, curcumine biodisponible Meriva et manganèse pour la formation normale de tissus conjonctifs et le confort articulaire.", c:"Ne convient pas aux femmes enceintes ou allaitantes ni aux moins de 18 ans. Déconseillé aux personnes sous anticoagulants."},
+    {n:"BiOmega", d:"2 gélules/jour, avec un repas", why:"apport concentré en EPA/DHA, utile pour le confort articulaire au quotidien."}
+  ],
+  "Changement d'humeur": [
+    {n:"Mind + Body Balance", d:"2 comprimés/jour, avec un repas", why:"ashwagandha, safran et mélisse, reconnus pour leurs effets mentaux et émotionnels favorisant une résilience saine face aux sautes d'humeur.", c:"Ne pas utiliser en cas de grossesse. Demandez conseil à votre médecin/pharmacien en cas de traitement contre la dépression en cours."},
+    {n:"BiOmega", d:"2 gélules/jour, avec un repas", why:"les oméga-3 EPA/DHA participent au bon fonctionnement cérébral et à l'équilibre émotionnel."}
+  ],
+  "Clarté d'esprit et/ou d'analyse": [
+    {n:"CopaPrime+", d:"2 comprimés/jour, de préférence avec un repas", why:"bacopa, extrait de fruit de caféier et ginseng américain, un complexe nootropique qui soutient la vitesse de traitement de l'information et la concentration.", c:"Contient de la caféine (2 mg/dose). Déconseillé aux enfants et aux femmes enceintes ou allaitantes."},
+    {n:"CellSentials", d:"Core Minerals : 4 comprimés/jour · Vita Antioxidant : 2 comprimés, 2 fois/jour, toujours avec un repas", why:"base vitaminique et minérale complète (dont iode et vitamines B), socle de toute supplémentation.", c:"Vita Antioxidant : à éviter chez la femme enceinte ou allaitante et chez les moins de 18 ans ; déconseillé aux personnes sous anticoagulants, aux diabétiques et aux fumeurs."}
+  ],
+  "Digestion": [
+    {n:"USANA Probiotic", d:"1 sachet/jour (à mélanger à une boisson froide ou un aliment)", why:"Bifidobacterium BB-12 et Lactobacillus rhamnosus LGG, deux souches cliniquement étudiées pour l'équilibre de la flore intestinale.", c:"Une consommation excessive peut avoir un effet laxatif."},
+    {n:"Fibergy Active", d:"1 cuillère (12 g)/jour dans 290–340 mL de boisson non gazeuse", why:"9 g de fibres solubles et insolubles par portion (FOS, fibre de canne à sucre, fibres de fruits) pour la régularité du transit et le microbiome intestinal."},
+    {n:"Hepasil DTX", d:"3 comprimés/jour, avec un repas", why:"choline, N-acétyl-cystéine, chardon-Marie et thé vert pour soutenir la fonction hépatique et les processus naturels de détoxification.", c:"Ne convient pas aux enfants, adolescents, femmes enceintes ou allaitantes. Consultez votre médecin en cas d'anticoagulants."}
+  ],
+  "Douleurs du dos": [
+    {n:"Procosa", d:"3 comprimés/jour, avec un repas", why:"soutien du tissu conjonctif et du cartilage grâce à la glucosamine et à la curcumine Meriva.", c:"Ne convient pas aux femmes enceintes ou allaitantes ni aux moins de 18 ans. Déconseillé aux personnes sous anticoagulants."},
+    {n:"MagneCal D", d:"2 comprimés/jour, avec un repas", why:"le magnésium contribue à une fonction musculaire normale et réduit la fatigue."}
+  ],
+  "Douleurs des jambes": [
+    {n:"MagneCal D", d:"2 comprimés/jour, avec un repas", why:"magnésium et calcium en ratio équilibré (1:1) pour la fonction neuromusculaire."},
+    {n:"Procosa", d:"3 comprimés/jour, avec un repas", why:"soutien articulaire et du cartilage en cas de sollicitation intense (conduite, sport).", c:"Ne convient pas aux femmes enceintes ou allaitantes ni aux moins de 18 ans. Déconseillé aux personnes sous anticoagulants."}
+  ],
+  "Endurance": [
+    {n:"CellSentials", d:"Core Minerals : 4 comprimés/jour · Vita Antioxidant : 2 comprimés, 2 fois/jour, avec repas", why:"fondation vitaminique et minérale pour le métabolisme énergétique.", c:"Vita Antioxidant : à éviter chez la femme enceinte ou allaitante et chez les moins de 18 ans."},
+    {n:"Energy+", d:"1 sachet/jour", why:"caféine naturelle de grains de café vert (60 mg), taurine et complexe de vitamines B pour la vigilance et le métabolisme énergétique.", c:"Ne convient pas aux femmes enceintes ou allaitantes, réservé à l'adulte. Contient de la caféine."}
+  ],
+  "Mémoire": [
+    {n:"CopaPrime+", d:"2 comprimés/jour, de préférence avec un repas", why:"bacopa et ginseng américain, deux plantes étudiées pour leur soutien à la mémoire de travail et à l'apprentissage.", c:"Contient de la caféine. Déconseillé aux enfants et aux femmes enceintes ou allaitantes."},
+    {n:"BiOmega", d:"2 gélules/jour, avec un repas", why:"les oméga-3 EPA/DHA sont importants pour la fonction cérébrale."}
+  ],
+  "Peau": [
+    {n:"Proflavanol C200", d:"2 comprimés/jour, de préférence avec un repas", why:"400 mg d'extrait de pépins de raisin et 600 mg de vitamine C (Poly C), pour la synthèse du collagène et la protection contre le stress oxydatif."},
+    {n:"CellSentials", d:"Core Minerals : 4 comprimés/jour · Vita Antioxidant : 2 comprimés, 2 fois/jour, avec repas", why:"vitamines A et E incluses, utiles au maintien d'une peau saine.", c:"Vita Antioxidant : à éviter chez la femme enceinte ou allaitante et chez les moins de 18 ans."},
+    {n:"Routine Celavive", d:"Nettoyant + tonique + sérum + hydratant, matin et soir", why:"gamme de soins topiques à la technologie InCelligence, formulée pour compléter (et non remplacer) la nutrition cellulaire par voie orale."}
+  ],
+  "Récupération": [
+    {n:"Proflavanol C200", d:"2 comprimés/jour, de préférence avec un repas", why:"protection antioxydante utile après un effort physique intense."},
+    {n:"BiOmega", d:"2 gélules/jour, avec un repas", why:"soutien cardiovasculaire et effet anti-inflammatoire naturel des oméga-3."},
+    {n:"MagneCal D", d:"2 comprimés/jour, avec un repas", why:"le magnésium aide à réduire la fatigue musculaire."}
+  ],
+  "Sommeil": [
+    {n:"MagneCal D", d:"2 comprimés/jour, le soir de préférence avec un repas", why:"le magnésium contribue au fonctionnement normal du système nerveux, favorable à la détente avant le coucher."},
+    {n:"Infusion digestive", d:"1 cuillère doseuse (3,5 g) dans 200 mL d'eau chaude, en soirée", why:"mélange apaisant à la chicorée, gingembre et chardon-Marie, pensé pour une routine nocturne relaxante.", c:"Non recommandé aux femmes enceintes/allaitantes, en cas d'ulcère, d'obstruction biliaire ou d'insuffisance cardiaque/rénale. Allergie croisée possible (famille des Astéracées)."}
+  ],
+  "Stress": [
+    {n:"Mind + Body Balance", d:"2 comprimés/jour, avec un repas", why:"ashwagandha, safran et mélisse pour favoriser une réponse et une résilience saines face au stress occasionnel.", c:"Ne pas utiliser en cas de grossesse. Demandez conseil à votre médecin/pharmacien en cas de traitement contre la dépression en cours."},
+    {n:"MagneCal D", d:"2 comprimés/jour, avec un repas", why:"soutien du système nerveux via le magnésium."}
+  ],
+  "Performances sportives": [
+    {n:"CellSentials", d:"Core Minerals : 4 comprimés/jour · Vita Antioxidant : 2 comprimés, 2 fois/jour, avec repas", why:"fondation nutritionnelle quotidienne, base de tout protocole sportif.", c:"Vita Antioxidant : à éviter chez la femme enceinte ou allaitante et chez les moins de 18 ans."},
+    {n:"Proflavanol C200", d:"2 comprimés/jour, avec un repas", why:"protection antioxydante à l'effort."},
+    {n:"BiOmega", d:"2 gélules/jour, avec un repas", why:"soutien cardiovasculaire et récupération."},
+    {n:"Energy+", d:"1 sachet/jour", why:"taurine et caféine naturelle pour le rendement physique.", c:"Ne convient pas aux femmes enceintes ou allaitantes, réservé à l'adulte."}
+  ],
+  "Système immunitaire": [
+    {n:"Proglucamune", d:"2 comprimés/jour, de préférence avec un repas", why:"zinc et complexe de bêta-glucanes (levure, reishi, shiitake) qui soutiennent les défenses naturelles de l'organisme."},
+    {n:"CellSentials", d:"Core Minerals : 4 comprimés/jour · Vita Antioxidant : 2 comprimés, 2 fois/jour, avec repas", why:"apport en zinc et vitamine D, qui contribuent au fonctionnement normal du système immunitaire.", c:"Vita Antioxidant : à éviter chez la femme enceinte ou allaitante et chez les moins de 18 ans."},
+    {n:"USANA Probiotic", d:"1 sachet/jour", why:"l'équilibre digestif est étroitement lié à l'immunité (une grande part des cellules immunitaires se concentre dans l'intestin)."}
+  ]
+};
+
+// Complémentation ciblée selon la phase de vie féminine déclarée.
+// Remarque importante : la gamme figurant dans la brochure USANA France 2025
+// (CellSentials, Optimizers, etc.) n'inclut pas de ligne prénatale dédiée, et
+// plusieurs références de cette gamme sont explicitement déconseillées pendant
+// la grossesse ou l'allaitement (voir mises en garde ci-dessous). Pour ces deux
+// phases, la recommandation prudente est de renvoyer vers un avis médical et un
+// conseiller USANA plutôt que de proposer les produits génériques du catalogue.
+const WOMEN_PHASE_MAP = {
+  "Cycle menstruel régulier": {
+    intro:"En période de cycle menstruel actif, les besoins en magnésium et en oméga-3 peuvent augmenter, en particulier en phase lutéale (tensions, sautes d'humeur, fatigue).",
+    products:[
+      {n:"MagneCal D", d:"2 comprimés/jour, avec un repas", why:"le magnésium contribue à réduire la fatigue et soutient l'équilibre nerveux en phase prémenstruelle."},
+      {n:"Mind + Body Balance", d:"2 comprimés/jour, avec un repas", why:"ashwagandha, safran et mélisse pour accompagner les sautes d'humeur et la tension nerveuse du cycle.", c:"À éviter en cas de grossesse."},
+      {n:"BiOmega", d:"2 gélules/jour, avec un repas", why:"les oméga-3 participent au confort général et à l'équilibre émotionnel pendant le cycle."}
+    ]
+  },
+  "Grossesse": {
+    intro:"La gamme générale USANA France (CellSentials, Optimizers) n'est pas formulée spécifiquement pour la grossesse : plusieurs références sont explicitement déconseillées durant cette période (Vita Antioxidant, Procosa, CopaPrime+, Mind + Body Balance, Hepasil DTX, Infusion digestive, Energy+).",
+    products:[],
+    caution:"⚠️ Aucune recommandation produit générique n'est appropriée ici. Un avis médical (médecin, sage-femme, gynécologue) et un échange avec un conseiller USANA sont indispensables avant toute supplémentation pendant la grossesse."
+  },
+  "Allaitement": {
+    intro:"Comme pour la grossesse, plusieurs produits phares de la gamme USANA France sont explicitement déconseillés pendant l'allaitement (Vita Antioxidant, Procosa, CopaPrime+, Mind + Body Balance, Hepasil DTX, Infusion digestive, Energy+).",
+    products:[],
+    caution:"⚠️ Demandez l'avis de votre médecin ou de votre pharmacien avant toute supplémentation pendant l'allaitement, et rapprochez-vous d'un conseiller USANA pour connaître les options adaptées à cette période."
+  },
+  "Périménopause / Ménopause": {
+    intro:"La périménopause et la ménopause s'accompagnent de changements hormonaux (bouffées de chaleur, troubles du sommeil, sautes d'humeur, fragilité osseuse).",
+    products:[
+      {n:"MagneCal D", d:"2 comprimés/jour, avec un repas", why:"calcium, magnésium et vitamine D pour le maintien de la densité osseuse, un enjeu clé après la ménopause."},
+      {n:"Mind + Body Balance", d:"2 comprimés/jour, avec un repas", why:"ashwagandha, safran et mélisse pour accompagner les sautes d'humeur et les troubles du sommeil de la transition ménopausique."},
+      {n:"CellSentials", d:"Core Minerals : 4 comprimés/jour · Vita Antioxidant : 2 comprimés, 2 fois/jour, avec repas", why:"base nutritionnelle quotidienne complète."}
+    ]
+  }
+};
+
+// Complémentation ciblée selon le profil masculin déclaré.
+// Comme pour la section féminine, uniquement des produits confirmés dans la
+// brochure USANA France 2025 (pas de gamme prostate/testostérone dédiée dans
+// ce catalogue) — les axes retenus restent donc volontairement génériques :
+// vitalité liée à l'âge, vie sportive active, et stress professionnel.
+const MEN_PHASE_MAP = {
+  "Vie active / sportive régulière": {
+    intro:"Une pratique sportive régulière augmente les besoins en antioxydants, oméga-3 et minéraux pour soutenir la performance et la récupération.",
+    products:[
+      {n:"CellSentials", d:"Core Minerals : 4 comprimés/jour · Vita Antioxidant : 2 comprimés, 2 fois/jour, avec repas", why:"fondation nutritionnelle quotidienne, base de tout protocole sportif."},
+      {n:"Proflavanol C200", d:"2 comprimés/jour, avec un repas", why:"protection antioxydante à l'effort."},
+      {n:"BiOmega", d:"2 gélules/jour, avec un repas", why:"soutien cardiovasculaire et récupération musculaire."},
+      {n:"Energy+", d:"1 sachet/jour", why:"taurine et caféine naturelle pour le rendement physique.", c:"Réservé à l'adulte, contient de la caféine."}
+    ]
+  },
+  "Fatigue / baisse de tonus liée à l'âge": {
+    intro:"À partir de 40-45 ans, la vitalité, la récupération et la clarté mentale peuvent décliner progressivement — un accompagnement nutritionnel ciblé peut soutenir cette période.",
+    products:[
+      {n:"CellSentials", d:"Core Minerals : 4 comprimés/jour · Vita Antioxidant : 2 comprimés, 2 fois/jour, avec repas", why:"base nutritionnelle quotidienne complète."},
+      {n:"CopaPrime+", d:"2 comprimés/jour, de préférence avec un repas", why:"bacopa, extrait de fruit de caféier et ginseng américain pour la clarté mentale et l'endurance cognitive.", c:"Contient de la caféine (2 mg/dose)."},
+      {n:"MagneCal D", d:"2 comprimés/jour, avec un repas", why:"magnésium et calcium pour la fonction musculaire et la santé osseuse."},
+      {n:"BiOmega", d:"2 gélules/jour, avec un repas", why:"soutien cardiovasculaire à long terme."}
+    ]
+  },
+  "Stress professionnel / surmenage": {
+    intro:"Une charge de travail ou un stress soutenu peuvent affecter le sommeil, l'humeur et les défenses naturelles.",
+    products:[
+      {n:"Mind + Body Balance", d:"2 comprimés/jour, avec un repas", why:"ashwagandha, safran et mélisse pour favoriser une réponse et une résilience saines face au stress occasionnel.", c:"Demandez conseil à votre médecin/pharmacien en cas de traitement contre la dépression en cours."},
+      {n:"MagneCal D", d:"2 comprimés/jour, avec un repas", why:"soutien du système nerveux via le magnésium."},
+      {n:"Proglucamune", d:"2 comprimés/jour, de préférence avec un repas", why:"soutien des défenses naturelles, souvent affaiblies en période de stress prolongé."}
+    ]
+  }
+};
+
+/* ============================================================
+   ÉTAT
+   ============================================================ */
+let state = {
+  nom:"", age:"", email:"", metier:"", whatsapp:"", referent:"",
+  traitement:"", traitementDetail:"",
+  importance:"", importanceOther:"",
+  genre:"", phaseFemme:"", phaseFemmeOther:"", phaseHomme:"", phaseHommeOther:"",
+  humeurType:"",
+  scores:{},
+  connaissances:5,
+  consomme:"",
+  raisons:[], raisonsOther:"",
+  types:[], typesOther:"",
+  achat:"", achatOther:"",
+  budgetCompl:"", budgetSoin:"",
+  remarque:""
+};
+SCALE_ITEMS.forEach(it => state.scores[it] = 5);
+
+let stepIndex = 0;
+const TOTAL_STEPS = 8;
+document.getElementById('stepTotal').textContent = TOTAL_STEPS;
+
+const ridgeLen = 900;
+function setProgress(n){
+  document.getElementById('stepNow').textContent = n;
+  const pct = n / TOTAL_STEPS;
+  document.getElementById('ridgeFill').style.strokeDashoffset = Math.max(0, ridgeLen - ridgeLen*pct);
+}
+
+/* ============================================================
+   RENDU DES ÉTAPES
+   ============================================================ */
+const host = document.getElementById('cardHost');
+
+function render(){
+  setProgress(Math.min(stepIndex+1, TOTAL_STEPS));
+  host.innerHTML = "";
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = STEPS[stepIndex]();
+  host.appendChild(card);
+  wireStep(stepIndex);
+}
+
+function navRow(canBack, nextLabel, nextEnabled=true){
+  return `<div class="nav-row">
+    ${canBack ? `<button class="btn-ghost" id="btnBack">← Retour</button>` : `<span></span>`}
+    <button class="btn-primary" id="btnNext" ${nextEnabled?'':'disabled'}>${nextLabel}</button>
+  </div>`;
+}
+
+const STEPS = [
+  // 0 - Identité
+  () => `
+    <h1 class="step-title">Bienvenue 👋</h1>
+    <p class="step-sub">Moins de deux minutes pour comprendre vos habitudes santé — et repartir avec une analyse personnalisée. Les champs marqués d'un <span style="color:var(--gold-soft)">*</span> sont obligatoires.</p>
+    <label class="field-label">Nom et prénom *</label>
+    <input type="text" id="f_nom" placeholder="Votre nom complet" value="${state.nom}" required>
+    <label class="field-label">Âge *</label>
+    <input type="text" id="f_age" placeholder="Ex : 34" value="${state.age}" required>
+    <label class="field-label">Adresse e-mail *</label>
+    <input type="email" id="f_email" placeholder="vous@exemple.com" value="${state.email}" required>
+    <label class="field-label">Métier exercé *</label>
+    <input type="text" id="f_metier" placeholder="Votre métier" value="${state.metier}" required>
+    <label class="field-label">Numéro WhatsApp *</label>
+    <input type="tel" id="f_whatsapp" placeholder="+33 6 12 34 56 78" value="${state.whatsapp}" required>
+
+    <label class="field-label">Suivez-vous un traitement médical en cours ? *</label>
+    <div class="choice-grid" id="choiceTraitement">
+      ${["Oui","Non"].map(o => `
+        <div class="choice ${state.traitement===o?'selected':''}" data-val="${o}">
+          <div class="dot"></div><span>${o}</span>
+        </div>`).join("")}
+    </div>
+    <div id="traitementDetailWrap" style="display:${state.traitement==='Oui'?'block':'none'}; margin-top:10px;">
+      <label class="field-label">Si oui, quels médicaments vous ont été prescrits ? *</label>
+      <textarea class="other-input" id="traitementDetailText" rows="2" placeholder="Listez les médicaments (ou le motif du traitement)">${state.traitementDetail||''}</textarea>
+    </div>
+
+    <label class="field-label">Vous êtes *</label>
+    <div class="choice-grid" id="choiceGenre">
+      ${["Femme","Homme"].map(o => `
+        <div class="choice ${state.genre===o?'selected':''}" data-val="${o}">
+          <div class="dot"></div><span>${o}</span>
+        </div>`).join("")}
+    </div>
+
+    <label class="field-label">Quel est votre référent ? *</label>
+    <input type="text" id="f_referent" placeholder="Nom de la personne qui vous a orienté(e) vers ce questionnaire" value="${state.referent}" required>
+
+    ${navRow(false, "Continuer →", isStep0Valid())}
+  `,
+  // 1 - Importance
+  () => `
+    <h1 class="step-title">Quelle importance accordez-vous à votre santé ?</h1>
+    <div class="choice-grid" id="choiceImportance">
+      ${["Très grande importance","C'est important","Aucune importance"].map(o => `
+        <div class="choice ${state.importance===o?'selected':''}" data-val="${o}">
+          <div class="dot"></div><span>${o}</span>
+        </div>`).join("")}
+    </div>
+    ${navRow(true, "Continuer →", !!state.importance)}
+  `,
+  // 2 - Profil (phase de vie liée au genre déjà renseigné)
+  () => `
+    <h1 class="step-title">${state.genre === "Homme" ? "Votre profil" : "Votre phase actuelle"}</h1>
+    <p class="step-sub">Cette étape est facultative — elle permet d'affiner l'analyse.</p>
+    ${state.genre === "Femme" ? `
+      <p class="step-sub" style="margin-top:4px;">Dans quelle phase vous situez-vous actuellement ?</p>
+      <div class="choice-grid" id="choicePhaseFemme">
+        ${["Cycle menstruel régulier","Grossesse","Allaitement","Périménopause / Ménopause","Autre"].map(o => `
+          <div class="choice ${state.phaseFemme===o?'selected':''}" data-val="${o}">
+            <div class="dot"></div><span>${o}</span>
+          </div>`).join("")}
+      </div>
+      <div id="phaseFemmeOtherWrap" style="display:${state.phaseFemme==='Autre'?'block':'none'}; margin-top:8px;">
+        <textarea class="other-input" id="phaseFemmeOtherText" rows="2" placeholder="Précisez...">${state.phaseFemmeOther||''}</textarea>
+      </div>
+    ` : ""}
+    ${state.genre === "Homme" ? `
+      <p class="step-sub" style="margin-top:4px;">Quel profil vous correspond le mieux actuellement ?</p>
+      <div class="choice-grid" id="choicePhaseHomme">
+        ${["Vie active / sportive régulière","Fatigue / baisse de tonus liée à l'âge","Stress professionnel / surmenage","Autre"].map(o => `
+          <div class="choice ${state.phaseHomme===o?'selected':''}" data-val="${o}">
+            <div class="dot"></div><span>${o}</span>
+          </div>`).join("")}
+      </div>
+      <div id="phaseHommeOtherWrap" style="display:${state.phaseHomme==='Autre'?'block':'none'}; margin-top:8px;">
+        <textarea class="other-input" id="phaseHommeOtherText" rows="2" placeholder="Précisez...">${state.phaseHommeOther||''}</textarea>
+      </div>
+    ` : ""}
+    ${navRow(true, "Continuer →")}
+  `,
+  // 3 - Auto-évaluation (15 échelles)
+  () => `
+    <h1 class="step-title">Comment vous sentez-vous ?</h1>
+    <p class="step-sub">1 = tout va mal — 10 = tout va bien. Ajustez chaque curseur.</p>
+    <div class="scale-list">
+      ${SCALE_ITEMS.map(item => `
+        <div class="scale-item">
+          <div class="scale-top">
+            <span class="scale-name">${item}</span>
+            <span class="scale-value" id="val_${slug(item)}">${state.scores[item]}</span>
+          </div>
+          <input type="range" min="1" max="10" value="${state.scores[item]}" data-item="${item}" class="scaleInput">
+        </div>
+      `).join("")}
+    </div>
+    <p class="step-sub" style="margin-top:26px;">Ces derniers temps, comment décririez-vous votre humeur au quotidien ?</p>
+    <div class="choice-grid" id="choiceHumeurType">
+      ${["Stable","Ambivalente / changeante","Plutôt basse"].map(o => `
+        <div class="choice ${state.humeurType===o?'selected':''}" data-val="${o}">
+          <div class="dot"></div><span>${o}</span>
+        </div>`).join("")}
+    </div>
+    ${navRow(true, "Continuer →")}
+  `,
+  // 3 - Connaissances
+  () => `
+    <h1 class="step-title">Comment savez-vous que votre corps reçoit tout ce dont il a besoin ?</h1>
+    <div class="choice-grid" id="choiceKnow">
+      ${["Je ne sais pas","Je mange sainement","Autre"].map(o => `
+        <div class="choice ${state.importanceKnow===o?'selected':''}" data-val="${o}">
+          <div class="dot"></div><span>${o}</span>
+        </div>`).join("")}
+    </div>
+    <div id="knowOtherWrap" style="display:${state.importanceKnow==='Autre'?'block':'none'}">
+      <textarea class="other-input" id="knowOtherText" rows="2" placeholder="Précisez...">${state.importanceKnowOther||''}</textarea>
+    </div>
+    <p class="step-sub" style="margin-top:26px;">Notez vos connaissances en produits nutritionnels (1 = je n'y connais rien — 10 = expert)</p>
+    <div class="scale-item">
+      <div class="scale-top">
+        <span class="scale-name">Niveau de connaissance</span>
+        <span class="scale-value" id="val_connaissances">${state.connaissances}</span>
+      </div>
+      <input type="range" min="1" max="10" value="${state.connaissances}" id="connaissancesInput">
+    </div>
+    ${navRow(true, "Continuer →")}
+  `,
+  // 4 - Consommation actuelle
+  () => `
+    <h1 class="step-title">Consommez-vous des compléments nutritionnels ?</h1>
+    <div class="choice-grid" id="choiceConsomme">
+      ${["Oui","Très rarement","Jamais"].map(o => `
+        <div class="choice ${state.consomme===o?'selected':''}" data-val="${o}">
+          <div class="dot"></div><span>${o}</span>
+        </div>`).join("")}
+    </div>
+    ${state.consomme && state.consomme !== "Jamais" ? `
+      <p class="step-sub" style="margin-top:22px;">Pour quelles raisons ? (plusieurs choix possibles)</p>
+      <div class="choice-grid" id="choiceRaisons">
+        ${["Immunité","Performances sportives","Digestion","Énergie","Santé en général","Autre"].map(o => `
+          <div class="choice multi ${state.raisons.includes(o)?'selected':''}" data-val="${o}">
+            <div class="dot"></div><span>${o}</span>
+          </div>`).join("")}
+      </div>
+      <div id="raisonsOtherWrap" style="display:${state.raisons.includes('Autre')?'block':'none'}">
+        <textarea class="other-input" id="raisonsOtherText" rows="2" placeholder="Précisez...">${state.raisonsOther||''}</textarea>
+      </div>
+      <p class="step-sub" style="margin-top:22px;">Quels types de produits utilisez-vous ?</p>
+      <div class="choice-grid" id="choiceTypes">
+        ${["Multivitamines","Magnésium/Calcium","Oméga 3","Probiotiques","Autre"].map(o => `
+          <div class="choice multi ${state.types.includes(o)?'selected':''}" data-val="${o}">
+            <div class="dot"></div><span>${o}</span>
+          </div>`).join("")}
+      </div>
+      <div id="typesOtherWrap" style="display:${state.types.includes('Autre')?'block':'none'}">
+        <textarea class="other-input" id="typesOtherText" rows="2" placeholder="Précisez...">${state.typesOther||''}</textarea>
+      </div>
+    ` : ""}
+    ${navRow(true, "Continuer →", !!state.consomme)}
+  `,
+  // 5 - Achat & budget
+  () => `
+    <h1 class="step-title">Vos habitudes d'achat</h1>
+    <p class="step-sub">Où achetez-vous vos produits nutritionnels ?</p>
+    <div class="choice-grid" id="choiceAchat">
+      ${["En Pharmacie","En Parapharmacie","À un ami","Autre"].map(o => `
+        <div class="choice ${state.achat===o?'selected':''}" data-val="${o}">
+          <div class="dot"></div><span>${o}</span>
+        </div>`).join("")}
+    </div>
+    <div id="achatOtherWrap" style="display:${state.achat==='Autre'?'block':'none'}">
+      <textarea class="other-input" id="achatOtherText" rows="2" placeholder="Nom du site ou précision...">${state.achatOther||''}</textarea>
+    </div>
+    <p class="step-sub" style="margin-top:24px;">Budget mensuel du FOYER en compléments nutritionnels</p>
+    <div class="choice-grid" id="choiceBudgetCompl">
+      ${["Moins de 50 EUR","Entre 50 et 150 EUR","Entre 150 et 300 EUR","Plus de 300 EUR"].map(o => `
+        <div class="choice ${state.budgetCompl===o?'selected':''}" data-val="${o}">
+          <div class="dot"></div><span>${o}</span>
+        </div>`).join("")}
+    </div>
+    <p class="step-sub" style="margin-top:24px;">Budget mensuel du FOYER en produits de soin de la peau</p>
+    <div class="choice-grid" id="choiceBudgetSoin">
+      ${["Moins de 50 EUR","Entre 50 et 150 EUR","Entre 150 et 300 EUR","Plus de 300 EUR"].map(o => `
+        <div class="choice ${state.budgetSoin===o?'selected':''}" data-val="${o}">
+          <div class="dot"></div><span>${o}</span>
+        </div>`).join("")}
+    </div>
+    <label class="field-label" style="margin-top:24px;">Remarque complémentaire <span style="color:var(--muted); font-weight:400;">(facultatif)</span></label>
+    <textarea class="other-input" id="f_remarque" rows="3" placeholder="Toute information utile selon la situation de la personne...">${state.remarque||''}</textarea>
+    ${navRow(true, "Voir mon analyse →")}
+  `,
+  // 6 - Résultats
+  () => renderResults()
+];
+
+function slug(s){ return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,'_'); }
+
+function isStep0Valid(){
+  const base = state.nom.trim() && state.age.trim() && state.email.trim() && state.metier.trim() && state.whatsapp.trim() && state.referent.trim() && state.traitement && state.genre;
+  if(!base) return false;
+  if(state.traitement === "Oui" && !state.traitementDetail.trim()) return false;
+  return true;
+}
+
+function wireStep(i){
+  if(i===0){
+    const nextBtn = () => document.getElementById('btnNext');
+    const refreshValidity = () => {
+      const btn = nextBtn();
+      if(btn) btn.disabled = !isStep0Valid();
+    };
+    document.getElementById('f_nom').oninput = e => { state.nom = e.target.value; refreshValidity(); };
+    document.getElementById('f_age').oninput = e => { state.age = e.target.value; refreshValidity(); };
+    document.getElementById('f_email').oninput = e => { state.email = e.target.value; refreshValidity(); };
+    document.getElementById('f_metier').oninput = e => { state.metier = e.target.value; refreshValidity(); };
+    document.getElementById('f_whatsapp').oninput = e => { state.whatsapp = e.target.value; refreshValidity(); };
+    const fr = document.getElementById('f_referent');
+    if(fr) fr.oninput = e => { state.referent = e.target.value; refreshValidity(); };
+    document.querySelectorAll('#choiceTraitement .choice').forEach(el=>{
+      el.onclick = () => {
+        state.traitement = el.dataset.val;
+        if(state.traitement === "Non") state.traitementDetail = "";
+        goTo(i);
+      };
+    });
+    const td = document.getElementById('traitementDetailText');
+    if(td) td.oninput = e => { state.traitementDetail = e.target.value; refreshValidity(); };
+    document.querySelectorAll('#choiceGenre .choice').forEach(el=>{
+      el.onclick = () => {
+        state.genre = el.dataset.val;
+        if(state.genre !== "Femme") state.phaseFemme = "";
+        if(state.genre !== "Homme") state.phaseHomme = "";
+        goTo(i);
+      };
+    });
+  }
+  if(i===1){
+    document.querySelectorAll('#choiceImportance .choice').forEach(el=>{
+      el.onclick = () => { state.importance = el.dataset.val; goTo(i); };
+    });
+  }
+  if(i===2){
+    const phaseEls = document.querySelectorAll('#choicePhaseFemme .choice');
+    if(phaseEls) phaseEls.forEach(el=>{
+      el.onclick = () => { state.phaseFemme = el.dataset.val; goTo(i); };
+    });
+    const pfo = document.getElementById('phaseFemmeOtherText');
+    if(pfo) pfo.oninput = e => { state.phaseFemmeOther = e.target.value; };
+    const phaseElsH = document.querySelectorAll('#choicePhaseHomme .choice');
+    if(phaseElsH) phaseElsH.forEach(el=>{
+      el.onclick = () => { state.phaseHomme = el.dataset.val; goTo(i); };
+    });
+    const pho = document.getElementById('phaseHommeOtherText');
+    if(pho) pho.oninput = e => { state.phaseHommeOther = e.target.value; };
+  }
+  if(i===3){
+    document.querySelectorAll('.scaleInput').forEach(inp=>{
+      inp.oninput = () => {
+        state.scores[inp.dataset.item] = parseInt(inp.value);
+        document.getElementById('val_'+slug(inp.dataset.item)).textContent = inp.value;
+      };
+    });
+    document.querySelectorAll('#choiceHumeurType .choice').forEach(el=>{
+      el.onclick = () => { state.humeurType = el.dataset.val; goTo(i); };
+    });
+  }
+  if(i===4){
+    document.querySelectorAll('#choiceKnow .choice').forEach(el=>{
+      el.onclick = () => {
+        state.importanceKnow = el.dataset.val;
+        document.getElementById('knowOtherWrap').style.display = el.dataset.val==='Autre' ? 'block' : 'none';
+        goTo(i);
+      };
+    });
+    const ko = document.getElementById('knowOtherText');
+    if(ko) ko.oninput = e => state.importanceKnowOther = e.target.value;
+    const ci = document.getElementById('connaissancesInput');
+    ci.oninput = () => { state.connaissances = parseInt(ci.value); document.getElementById('val_connaissances').textContent = ci.value; };
+  }
+  if(i===5){
+    document.querySelectorAll('#choiceConsomme .choice').forEach(el=>{
+      el.onclick = () => { state.consomme = el.dataset.val; render(); };
+    });
+    document.querySelectorAll('#choiceRaisons .choice').forEach(el=>{
+      el.onclick = () => {
+        toggleMulti(state.raisons, el.dataset.val);
+        document.getElementById('raisonsOtherWrap').style.display = state.raisons.includes('Autre') ? 'block':'none';
+        goTo(i);
+      };
+    });
+    const ro = document.getElementById('raisonsOtherText');
+    if(ro) ro.oninput = e => state.raisonsOther = e.target.value;
+    document.querySelectorAll('#choiceTypes .choice').forEach(el=>{
+      el.onclick = () => {
+        toggleMulti(state.types, el.dataset.val);
+        document.getElementById('typesOtherWrap').style.display = state.types.includes('Autre') ? 'block':'none';
+        goTo(i);
+      };
+    });
+    const to = document.getElementById('typesOtherText');
+    if(to) to.oninput = e => state.typesOther = e.target.value;
+  }
+  if(i===6){
+    document.querySelectorAll('#choiceAchat .choice').forEach(el=>{
+      el.onclick = () => {
+        state.achat = el.dataset.val;
+        document.getElementById('achatOtherWrap').style.display = el.dataset.val==='Autre' ? 'block':'none';
+        goTo(i);
+      };
+    });
+    const ao = document.getElementById('achatOtherText');
+    if(ao) ao.oninput = e => state.achatOther = e.target.value;
+    document.querySelectorAll('#choiceBudgetCompl .choice').forEach(el=>{
+      el.onclick = () => { state.budgetCompl = el.dataset.val; goTo(i); };
+    });
+    document.querySelectorAll('#choiceBudgetSoin .choice').forEach(el=>{
+      el.onclick = () => { state.budgetSoin = el.dataset.val; goTo(i); };
+    });
+    const rem = document.getElementById('f_remarque');
+    if(rem) rem.oninput = e => { state.remarque = e.target.value; };
+  }
+
+  const back = document.getElementById('btnBack');
+  if(back) back.onclick = () => { stepIndex--; render(); };
+  const next = document.getElementById('btnNext');
+  if(next) next.onclick = () => {
+    if(next.disabled) return;
+    if(stepIndex < STEPS.length-1){ stepIndex++; render(); }
+  };
+}
+
+function toggleMulti(arr, val){
+  const idx = arr.indexOf(val);
+  if(idx>-1) arr.splice(idx,1); else arr.push(val);
+}
+
+// Redessine juste les classes "selected" sans perdre le focus des champs texte
+function goTo(i){
+  const card = host.firstElementChild;
+  card.innerHTML = STEPS[i]();
+  wireStep(i);
+}
+
+/* ============================================================
+   ANALYSE
+   ============================================================ */
+function buildAnalysis(){
+  const entries = SCALE_ITEMS.map(it => [it, state.scores[it]]);
+  const low = entries.filter(([,v]) => v <= 5).sort((a,b)=>a[1]-b[1]);
+  const high = entries.filter(([,v]) => v >= 8);
+  const avg = (entries.reduce((s,[,v])=>s+v,0)/entries.length).toFixed(1);
+
+  let lines = [];
+  lines.push(`RÉPONSES AU QUESTIONNAIRE — ${state.nom || "Participant"}`);
+  lines.push(`Score de forme global : ${avg}/10 sur les 15 axes évalués.`);
+  lines.push("");
+
+  lines.push("AUTO-ÉVALUATION (détail) :");
+  entries.forEach(([n,v]) => lines.push(`  • ${n} — ${v}/10`));
+  lines.push("");
+
+  if(low.length){
+    lines.push(`Points d'attention (score ≤ 5) : ` + low.map(([n,v])=>`${n} (${v}/10)`).join(", ") + ".");
+  }
+  if(high.length){
+    lines.push(`Points forts (score ≥ 8) : ` + high.map(([n,v])=>`${n} (${v}/10)`).join(", ") + ".");
+  }
+  lines.push("");
+
+  if(state.genre === "Femme"){
+    lines.push(`SANTÉ FÉMININE : ${state.phaseFemme === "Autre" ? "Autre — " + (state.phaseFemmeOther || "non précisé") : (state.phaseFemme || "non renseigné")}.`);
+    lines.push("");
+  }
+  if(state.genre === "Homme"){
+    lines.push(`SANTÉ MASCULINE : ${state.phaseHomme === "Autre" ? "Autre — " + (state.phaseHommeOther || "non précisé") : (state.phaseHomme || "non renseigné")}.`);
+    lines.push("");
+  }
+
+  if(state.humeurType){
+    lines.push(`HUMEUR AU QUOTIDIEN : ${state.humeurType}.`);
+    lines.push("");
+  }
+
+  lines.push("Importance accordée à la santé : " + (state.importance || "non renseigné") + ".");
+  lines.push("Connaissances en produits nutritionnels : " + state.connaissances + "/10.");
+  lines.push("Comment le corps reçoit ses vitamines/minéraux : " + (state.importanceKnow || "non renseigné") +
+    (state.importanceKnowOther ? " — " + state.importanceKnowOther : "") + ".");
+  lines.push("");
+
+  lines.push("Habitudes déclarées : consommation de compléments = " + (state.consomme||"non renseigné") +
+    (state.raisons.length ? " (raisons : " + state.raisons.join(", ") + (state.raisonsOther ? " / " + state.raisonsOther : "") + ")" : "") + ".");
+  if(state.types.length){
+    lines.push("Types de produits utilisés : " + state.types.join(", ") + (state.typesOther ? " / " + state.typesOther : "") + ".");
+  }
+  lines.push("Lieu d'achat : " + (state.achat||"non renseigné") + (state.achatOther ? " — " + state.achatOther : "") + ".");
+  lines.push("Budget mensuel foyer compléments : " + (state.budgetCompl||"non renseigné") +
+    " · Budget soin de la peau : " + (state.budgetSoin||"non renseigné") + ".");
+  lines.push("");
+
+  lines.push("TRAITEMENT MÉDICAL EN COURS : " + (state.traitement || "non renseigné") +
+    (state.traitement === "Oui" ? " — " + (state.traitementDetail || "détail non précisé") : ""));
+  lines.push("");
+
+  lines.push("Référent : " + (state.referent || "non renseigné"));
+
+  if(state.remarque && state.remarque.trim()){
+    lines.push("");
+    lines.push("REMARQUE COMPLÉMENTAIRE :");
+    lines.push(state.remarque.trim());
+  }
+
+  return lines.join("\n");
+}
+
+function renderResults(){
+  const analysis = buildAnalysis();
+  const entries = SCALE_ITEMS.map(it => [it, state.scores[it]]);
+  const chips = entries.map(([n,v]) => `
+    <div class="score-chip ${v<=5?'low':v>=8?'high':''}">
+      <div class="cat">${n}</div>
+      <div class="val">${v}/10</div>
+    </div>`).join("");
+
+  setTimeout(()=>{
+    const btn = document.getElementById('btnSend');
+    if(btn) btn.onclick = sendResults;
+    const btnBack2 = document.getElementById('btnBackResults');
+    if(btnBack2) btnBack2.onclick = () => { stepIndex--; render(); };
+    const btnPdf = document.getElementById('btnPdf');
+    if(btnPdf) btnPdf.onclick = generatePdf;
+  },0);
+
+  return `
+    <div class="result-hero">
+      <div class="glyph">🏔️</div>
+      <h1 class="step-title">Votre analyse est prête</h1>
+      <p class="step-sub">Voici votre synthèse personnalisée, prête à être envoyée par e-mail.</p>
+    </div>
+    <div class="score-summary">${chips}</div>
+    <div class="analysis-block" id="analysisText">${analysis}</div>
+    <div class="result-actions">
+      <button class="btn-secondary" id="btnPdf">⬇ Télécharger en PDF</button>
+      <button class="btn-primary" id="btnSend">Envoyer par e-mail →</button>
+    </div>
+    <div class="nav-row" style="margin-top:14px;">
+      <button class="btn-ghost" id="btnBackResults">← Modifier</button>
+      <span></span>
+    </div>
+    <div class="status-msg" id="statusMsg"></div>
+  `;
+}
+
+/* ============================================================
+   ENVOI (Formspree)
+   ============================================================ */
+async function sendResults(){
+  const statusEl = document.getElementById('statusMsg');
+  const btn = document.getElementById('btnSend');
+  const analysis = document.getElementById('analysisText').textContent;
+
+  if(FORMSPREE_ENDPOINT.includes("VOTRE_ID_ICI")){
+    statusEl.className = "status-msg err";
+    statusEl.textContent = "Endpoint Formspree non configuré — voir les instructions de mise en service.";
+    return;
+  }
+
+  btn.disabled = true;
+  statusEl.className = "status-msg";
+  statusEl.textContent = "Envoi en cours…";
+
+  const payload = {
+    _subject: `Questionnaire Confort/Tonus/Nutrition — ${state.nom || "Nouveau participant"}`,
+    nom: state.nom, age: state.age, email: state.email,
+    metier: state.metier, whatsapp: state.whatsapp, referent: state.referent || "non renseigné",
+    remarque_complementaire: state.remarque || "",
+    traitement_en_cours: state.traitement + (state.traitement==='Oui' ? " — " + state.traitementDetail : ""),
+    importance: state.importance,
+    sante_feminine: state.genre === "Femme" ? (state.phaseFemme === "Autre" ? "Autre : " + (state.phaseFemmeOther||"") : state.phaseFemme) : "non renseigné",
+    sante_masculine: state.genre === "Homme" ? (state.phaseHomme === "Autre" ? "Autre : " + (state.phaseHommeOther||"") : state.phaseHomme) : "non renseigné",
+    humeur_quotidien: state.humeurType || "non renseigné",
+    reponses_1_a_10: JSON.stringify(state.scores),
+    connaissance_produits: state.connaissances,
+    consomme_complements: state.consomme,
+    raisons: state.raisons.join(", ") + (state.raisonsOther ? " / " + state.raisonsOther : ""),
+    types_produits: state.types.join(", ") + (state.typesOther ? " / " + state.typesOther : ""),
+    lieu_achat: state.achat + (state.achatOther ? " / " + state.achatOther : ""),
+    budget_complements: state.budgetCompl,
+    budget_soin_peau: state.budgetSoin,
+    analyse_complete: analysis
+  };
+
+  try{
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "Accept":"application/json" },
+      body: JSON.stringify(payload)
+    });
+    if(res.ok){
+      statusEl.className = "status-msg ok";
+      statusEl.textContent = "✓ Analyse envoyée avec succès à votre boîte mail.";
+    } else {
+      throw new Error("Réponse serveur non valide");
+    }
+  }catch(err){
+    statusEl.className = "status-msg err";
+    statusEl.textContent = "Échec de l'envoi. Vérifiez votre connexion, l'endpoint Formspree, et que vous avez bien validé l'e-mail de confirmation reçu lors du tout premier envoi.";
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ============================================================
+   EXPORT PDF (fichier réel, téléchargeable)
+   ============================================================ */
+function generatePdf(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"mm", format:"a4" });
+  const marginL = 18, marginR = 18, pageW = 210, usableW = pageW - marginL - marginR;
+  let y = 20;
+
+  const gold = [178,140,30];
+  const dark = [26,32,44];
+  const grey = [110,120,135];
+
+  function checkPageBreak(neededSpace){
+    if(y + neededSpace > 285){ doc.addPage(); y = 20; }
+  }
+
+  // En-tête
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(18);
+  doc.setTextColor(...dark);
+  doc.text("Questionnaire Santé USANA — Confort, Tonus & Nutrition", marginL, y);
+  y += 6;
+  doc.setDrawColor(...gold);
+  doc.setLineWidth(0.6);
+  doc.line(marginL, y, pageW - marginR, y);
+  y += 10;
+
+  // Identité
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(10.5);
+  doc.setTextColor(...grey);
+  const identLines = [
+    `Participant : ${state.nom || "-"}   |   Âge : ${state.age || "-"}   |   Métier : ${state.metier || "-"}`,
+    `E-mail : ${state.email || "-"}   |   WhatsApp : ${state.whatsapp || "-"}`,
+    `Référent : ${state.referent || "non renseigné"}`,
+    `Traitement en cours : ${state.traitement || "-"}${state.traitement==='Oui' ? " (" + (state.traitementDetail||"non précisé") + ")" : ""}`,
+    `Date : ${new Date().toLocaleDateString('fr-FR')}`
+  ];
+  identLines.forEach(l => { doc.text(l, marginL, y); y += 5.5; });
+  y += 4;
+
+  // Scores
+  checkPageBreak(20);
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(12.5);
+  doc.setTextColor(...dark);
+  doc.text("Auto-évaluation (1 = tout va mal — 10 = tout va bien)", marginL, y);
+  y += 7;
+
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(10);
+  const entries = SCALE_ITEMS.map(it => [it, state.scores[it]]);
+  const colW = usableW / 2;
+  entries.forEach((entry, idx) => {
+    const [n, v] = entry;
+    const col = idx % 2;
+    const row = Math.floor(idx / 2);
+    if(col === 0) checkPageBreak(6);
+    const x = marginL + col * colW;
+    const rowY = y + row * 6;
+    if(v <= 5) doc.setTextColor(179,73,46); else if(v >= 8) doc.setTextColor(29,110,124); else doc.setTextColor(...dark);
+    doc.text(`${n}`, x, rowY);
+    doc.text(`${v}/10`, x + colW - 14, rowY);
+  });
+  y += Math.ceil(entries.length/2) * 6 + 8;
+  doc.setTextColor(...dark);
+
+  // Analyse complète
+  checkPageBreak(14);
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(12.5);
+  doc.text("Détail des réponses", marginL, y);
+  y += 7;
+
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(9.8);
+  doc.setTextColor(40,46,58);
+  const analysis = buildAnalysis();
+  const bodyLines = doc.splitTextToSize(analysis, usableW);
+  bodyLines.forEach(line => {
+    checkPageBreak(5.2);
+    // légère mise en valeur des titres en majuscules
+    if(/^[A-ZÀ-Ü :()\d/.,'’-]{6,}$/.test(line.trim()) && line.trim().length > 0 && line === line.toUpperCase()){
+      doc.setFont("helvetica","bold");
+      doc.setTextColor(...gold);
+    } else {
+      doc.setFont("helvetica","normal");
+      doc.setTextColor(40,46,58);
+    }
+    doc.text(line, marginL, y);
+    y += 5.2;
+  });
+
+  const filename = `Analyse_${(state.nom||"Participant").replace(/\s+/g,'_')}_USANA.pdf`;
+  doc.save(filename);
+}
+
+render();
+</script>
+</body>
+</html>
