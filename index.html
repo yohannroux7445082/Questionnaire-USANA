@@ -537,7 +537,8 @@ const STEPS = [
   // 0 - Identité
   () => `
     <h1 class="step-title">Bienvenue 👋</h1>
-    <p class="step-sub">Moins de deux minutes pour comprendre vos habitudes santé — et repartir avec une analyse personnalisée. Les champs marqués d'un <span style="color:var(--gold-soft)">*</span> sont obligatoires.</p>
+    <p class="step-sub">Moins de deux minutes pour comprendre vos habitudes santé. Les champs marqués d'un <span style="color:var(--gold-soft)">*</span> sont obligatoires.</p>
+    <p class="step-sub" style="color:var(--gold-soft); font-weight:600;">🔒 Toutes les données personnelles de ce questionnaire restent confidentielles.</p>
     <label class="field-label">Nom et prénom *</label>
     <input type="text" id="f_nom" placeholder="Votre nom complet" value="${state.nom}" required>
     <label class="field-label">Âge *</label>
