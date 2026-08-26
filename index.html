@@ -897,10 +897,13 @@ function buildAnalysis(){
   const avg = (entries.reduce((s,[,v])=>s+v,0)/entries.length).toFixed(1);
 
   let lines = [];
-  lines.push(`RÉPONSES AU QUESTIONNAIRE — ${state.nom || "Participant"}`);
+  lines.push(`SYNTHÈSE DES RÉPONSES`);
   if(state.refDossier && state.refDossier.trim()){
     lines.push(`Référence interne : ${state.refDossier.trim()}`);
   }
+  lines.push(`Sexe : ${state.genre || "non renseigné"}   |   Âge : ${state.age || "non renseigné"}`);
+  lines.push(`Traitement médical en cours : ${state.traitement || "non renseigné"}` +
+    (state.traitement === "Oui" ? " — " + (state.traitementDetail || "détail non précisé") : ""));
   lines.push(`Score de forme global : ${avg}/10 sur les 15 axes évalués.`);
   lines.push("");
 
@@ -945,12 +948,6 @@ function buildAnalysis(){
   lines.push("Budget mensuel foyer compléments : " + (state.budgetCompl||"non renseigné") +
     " · Budget soin de la peau : " + (state.budgetSoin||"non renseigné") + ".");
   lines.push("");
-
-  lines.push("TRAITEMENT MÉDICAL EN COURS : " + (state.traitement || "non renseigné") +
-    (state.traitement === "Oui" ? " — " + (state.traitementDetail || "détail non précisé") : ""));
-  lines.push("");
-
-  lines.push("Référent : " + (state.referent || "non renseigné"));
 
   if(state.remarque && state.remarque.trim()){
     lines.push("");
@@ -1093,9 +1090,7 @@ function generatePdf(){
   doc.setTextColor(...grey);
   const identLines = [
     `Référence interne : ${state.refDossier || "-"}`,
-    `Participant : ${state.nom || "-"}   |   Âge : ${state.age || "-"}   |   Métier : ${state.metier || "-"}`,
-    `E-mail : ${state.email || "-"}   |   WhatsApp : ${state.whatsapp || "-"}`,
-    `Référent : ${state.referent || "non renseigné"}`,
+    `Sexe : ${state.genre || "-"}   |   Âge : ${state.age || "-"}`,
     `Traitement en cours : ${state.traitement || "-"}${state.traitement==='Oui' ? " (" + (state.traitementDetail||"non précisé") + ")" : ""}`,
     `Date : ${new Date().toLocaleDateString('fr-FR')}`
   ];
@@ -1154,7 +1149,7 @@ function generatePdf(){
     y += 5.2;
   });
 
-  const filename = `Analyse_${(state.nom||"Participant").replace(/\s+/g,'_')}_USANA.pdf`;
+  const filename = `Analyse_${(state.refDossier||"dossier").replace(/\s+/g,'_')}_USANA.pdf`;
   doc.save(filename);
 }
 
